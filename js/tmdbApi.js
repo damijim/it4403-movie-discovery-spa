@@ -72,6 +72,41 @@ window.TMDB = (function () {
       return get("/account", {
         session_id: sessionId
       });
+    },      
+
+    //Favorites and Watchlist
+    getFavoriteMovies(accountId, sessionId, page = 1) {
+      return get(`/account/${accountId}/favorite/movies`, {
+        session_id: sessionId,
+        page
+      });
+    },
+
+    getWatchlistMovies(accountId, sessionId, page = 1) {
+      return get(`/account/${accountId}/watchlist/movies`, {
+        session_id: sessionId,
+        page
+      });
+    },
+
+    setFavorite(accountId, sessionId, movieId, isFavorite) {
+      return post(`/account/${accountId}/favorite`, {
+        media_type: "movie",
+        media_id: Number(movieId),
+        favorite: isFavorite
+      }, {
+        session_id: sessionId
+      });
+    },
+
+    setWatchlist(accountId, sessionId, movieId, isWatchlist) {
+      return post(`/account/${accountId}/watchlist`, {
+        media_type: "movie",
+        media_id: Number(movieId),
+        watchlist: isWatchlist
+      }, {
+        session_id: sessionId
+      });
     }
   };
 })();
