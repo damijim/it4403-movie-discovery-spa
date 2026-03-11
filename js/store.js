@@ -18,5 +18,8 @@ window.Store = {
 
     genresLoaded: false,
     genres: []
+    //Auth/Session fields
+    sessionId: localStorage.getItem("tmdb_session_id") || "",
+    accountId: localStorage.getItem("tmdb_account_id") || ""
   }
 };
