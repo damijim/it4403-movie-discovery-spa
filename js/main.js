@@ -21,6 +21,8 @@ function bindEvents() {
       loadHome();
     } else if (viewName === "discover") {
       loadDiscover();
+    } else if (viewName === "lists") {             //Added lists
+      loadMyLists(); 
     }
   });
 
@@ -110,6 +112,52 @@ function bindEvents() {
     const movieId = $(this).data("movie-id");
     UI.setStatus(`Details clicked for movie ID ${movieId}. Details view can be added next.`, "ok");
   });
+  //button handler, will come back for place holder button
+  $(document).on("click", ".js-favorite-btn", async function () {
+    if (!Store.state.sessionId || !Store.state.accountId) {
+      UI.setStatus("Please log in first to add favorites.", "error");
+      return;
+    }
+
+    const movieId = $(this).data("movie-id");
+
+    try {
+      await TMDB.setFavorite(
+        Store.state.accountId,
+        Store.state.sessionId,
+        movieId,
+        true
+      );
+
+      UI.setStatus("Movie added to Favorites.", "ok");
+    } catch (error) {
+      console.error(error);
+      UI.setStatus("Could not add movie to Favorites.", "error");
+    }
+  });
+
+  $(document).on("click", ".js-watchlist-btn", async function () {
+    if (!Store.state.sessionId || !Store.state.accountId) {
+      UI.setStatus("Please log in first to add to Watchlist.", "error");
+      return;
+    }
+
+    const movieId = $(this).data("movie-id");
+
+    try {
+      await TMDB.setWatchlist(
+        Store.state.accountId,
+        Store.state.sessionId,
+        movieId,
+        true
+      );
+
+      UI.setStatus("Movie added to Watchlist.", "ok");
+    } catch (error) {
+      console.error(error);
+      UI.setStatus("Could not add movie to Watchlist.", "error");
+    }
+  });
 }
 
 async function initApp() {
@@ -123,6 +171,8 @@ async function initApp() {
     const currentView = Router.getViewFromHash();
     if (currentView === "discover") {
       await loadDiscover();
+    } else if (currentView === "lists") {
+      await loadMyLists();
     } else {
       await loadHome();
     }
@@ -184,6 +234,84 @@ async function loadDiscover() {
     console.error(error);
     UI.setStatus("Could not load Discover results.", "error");
   }
+}
+
+async function loadMyLists() {
+  if (!Store.state.sessionId || !Store.state.accountId) {
+    $("#viewLists .panel").first().html(`
+      <h3 class="panel__title">Favorites</h3>
+      <p class="muted">Please log in to view Favorites.</p>
+    `);
+
+    $("#viewLists .panel").last().html(`
+      <h3 class="panel__title">Watchlist</h3>
+      <p class="muted">Please log in to view Watchlist.</p>
+    `);
+
+    UI.setStatus("Please log in to view your lists.", "error");
+    return;
+  }
+
+  try {
+    UI.setStatus("Loading your lists...");
+
+    const [favoritesData, watchlistData] = await Promise.all([
+      TMDB.getFavoriteMovies(Store.state.accountId, Store.state.sessionId, 1),
+      TMDB.getWatchlistMovies(Store.state.accountId, Store.state.sessionId, 1)
+    ]);
+
+    renderMyLists(favoritesData.results || [], watchlistData.results || []);
+    UI.setStatus("Loaded your Favorites and Watchlist.", "ok");
+  } catch (error) {
+    console.error(error);
+    UI.setStatus("Could not load your lists.", "error");
+  }
+}
+
+function renderMyLists(favorites, watchlist) {
+  const favoritesHtml = favorites.length
+    ? favorites.map(renderListItemCard).join("")
+    : `<p class="muted">No favorites yet.</p>`;
+
+  const watchlistHtml = watchlist.length
+    ? watchlist.map(renderListItemCard).join("")
+    : `<p class="muted">No watchlist items yet.</p>`;
+
+  $("#viewLists .panel").first().html(`
+    <h3 class="panel__title">Favorites</h3>
+    <div class="grid">${favoritesHtml}</div>
+  `);
+
+  $("#viewLists .panel").last().html(`
+    <h3 class="panel__title">Watchlist</h3>
+    <div class="grid">${watchlistHtml}</div>
+  `);
+}
+
+function renderListItemCard(movie) {
+  const title = movie.title || "Untitled";
+  const year = movie.release_date ? movie.release_date.slice(0, 4) : "—";
+  const rating = typeof movie.vote_average === "number"
+    ? movie.vote_average.toFixed(1)
+    : "—";
+
+  const poster = movie.poster_path
+    ? `${Store.config.imageBase}${movie.poster_path}`
+    : Store.config.placeholderPoster;
+
+  return `
+    <article class="card movie-tile" data-movie-id="${movie.id}">
+      <img
+        class="poster"
+        src="${poster}"
+        alt="${title} poster"
+      />
+      <div class="card__body">
+        <h3 class="card__title">${title}</h3>
+        <p class="card__meta">${year} • ⭐ ${rating}</p>
+      </div>
+    </article>
+  `;
 }
 
 function updateAuthButton() {
