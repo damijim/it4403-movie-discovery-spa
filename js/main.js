@@ -59,7 +59,7 @@ function bindEvents() {
       sessionStorage.setItem("tmdb_request_token", requestToken);
 
       const redirectTo =
-        window.location.origin + window.location.pathname + "#auth";
+        window.location.origin + window.location.pathname + "?tmdb_auth=1";  //Changed #auth to "?tmdb_auth=1"; query string
 
       const approveUrl =
         `https://www.themoviedb.org/authenticate/${requestToken}?redirect_to=${encodeURIComponent(redirectTo)}`;
