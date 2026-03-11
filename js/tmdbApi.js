@@ -21,6 +21,16 @@ window.TMDB = (function () {
     });
   }
 
+  function post(path, body = {}, params = {}) {
+    return $.ajax({
+      url: buildUrl(path, params),
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(body),
+      dataType: "json"
+    });
+  }
+
   return {
     getPopularMovies(page = 1) {
       return get("/movie/popular", { page });
@@ -45,6 +55,23 @@ window.TMDB = (function () {
 
     getGenres() {
       return get("/genre/movie/list");
+    },
+
+    // AUTH 
+    createRequestToken() {
+      return get("/authentication/token/new");
+    },
+
+    createSession(requestToken) {
+      return post("/authentication/session/new", {
+        request_token: requestToken
+      });
+    },
+
+    getAccount(sessionId) {
+      return get("/account", {
+        session_id: sessionId
+      });
     }
   };
 })();
