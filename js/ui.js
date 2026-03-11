@@ -46,8 +46,11 @@ window.UI = (function () {
             <button class="btn btn--small js-details-btn" type="button" data-movie-id="${movie.id}">
               Details
             </button>
-            <button class="btn btn--small" type="button">
+            <button class="btn btn--small js-favorite-btn" type="button" data-movie-id="${movie.id}">
               + Favorite
+            </button>
+            <button class="btn btn--small js-watchlist-btn" type="button" data-movie-id="${movie.id}">
+              + Watchlist
             </button>
           </div>
         </div>
