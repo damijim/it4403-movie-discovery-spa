@@ -208,12 +208,23 @@ function logout() {
 }
 
 async function finishLoginIfReturningFromTMDB() {
-  if (window.location.hash !== "#auth") return;
+  const params = new URLSearchParams(window.location.search);
+  const isReturningFromTMDB = params.get("tmdb_auth") === "1";
+  const approved = params.get("approved");
+  const returnedToken = params.get("request_token");
 
-  const token = sessionStorage.getItem("tmdb_request_token");
+  if (!isReturningFromTMDB) return;
+
+  if (approved !== "true") {
+    UI.setStatus("TMDB login was not approved.", "error");
+    window.history.replaceState({}, document.title, window.location.pathname + "#home");
+    return;
+  }
+
+  const token = returnedToken || sessionStorage.getItem("tmdb_request_token");
   if (!token) {
     UI.setStatus("Missing request token. Please click Log in again.", "error");
-    Router.go("home");
+    window.history.replaceState({}, document.title, window.location.pathname + "#home");
     return;
   }
 
@@ -235,10 +246,11 @@ async function finishLoginIfReturningFromTMDB() {
     updateAuthButton();
     UI.setStatus("Logged in successfully.", "ok");
 
-    Router.go("lists");
+    window.history.replaceState({}, document.title, window.location.pathname + "#lists");
+    UI.setActiveView("lists");
   } catch (error) {
     console.error(error);
     UI.setStatus("Could not complete login.", "error");
-    Router.go("home");
+    window.history.replaceState({}, document.title, window.location.pathname + "#home");
   }
 }
