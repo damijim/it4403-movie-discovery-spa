@@ -17,7 +17,7 @@ window.Store = {
     discoverSort: "popularity.desc",
 
     genresLoaded: false,
-    genres: []
+    genres: [],
     //Auth/Session fields
     sessionId: localStorage.getItem("tmdb_session_id") || "",
     accountId: localStorage.getItem("tmdb_account_id") || ""
