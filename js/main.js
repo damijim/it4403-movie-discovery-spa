@@ -1,4 +1,3 @@
-/* Sitewide Javascript (placeholder, may not be used as modular js files were discussed */
 //Written by Chris H and James S
 $(function () {
   bindEvents();
@@ -81,9 +80,11 @@ function bindEvents() {
 }
 
 async function initApp() {
+  updateAuthButton(); //Added button auth
   UI.setActiveView(Router.getViewFromHash());
 
   try {
+    await finishLoginIfReturningFromTMDB();  //Call auth setup
     await loadGenres();
 
     const currentView = Router.getViewFromHash();
@@ -149,5 +150,62 @@ async function loadDiscover() {
   } catch (error) {
     console.error(error);
     UI.setStatus("Could not load Discover results.", "error");
+  }
+}
+
+function updateAuthButton() {
+  if (Store.state.sessionId) {
+    $("#authBtn").text("Log out");
+  } else {
+    $("#authBtn").text("Log in");
+  }
+}
+
+function logout() {
+  Store.state.sessionId = "";
+  Store.state.accountId = "";
+
+  localStorage.removeItem("tmdb_session_id");
+  localStorage.removeItem("tmdb_account_id");
+  sessionStorage.removeItem("tmdb_request_token");
+
+  updateAuthButton();
+  UI.setStatus("Logged out.", "ok");
+  Router.go("home");
+}
+
+async function finishLoginIfReturningFromTMDB() {
+  if (window.location.hash !== "#auth") return;
+
+  const token = sessionStorage.getItem("tmdb_request_token");
+  if (!token) {
+    UI.setStatus("Missing request token. Please click Log in again.", "error");
+    Router.go("home");
+    return;
+  }
+
+  try {
+    UI.setStatus("Finishing TMDB login...");
+
+    const sessionResp = await TMDB.createSession(token);
+    const sessionId = sessionResp.session_id;
+
+    Store.state.sessionId = sessionId;
+    localStorage.setItem("tmdb_session_id", sessionId);
+
+    const account = await TMDB.getAccount(sessionId);
+    Store.state.accountId = String(account.id);
+    localStorage.setItem("tmdb_account_id", String(account.id));
+
+    sessionStorage.removeItem("tmdb_request_token");
+
+    updateAuthButton();
+    UI.setStatus("Logged in successfully.", "ok");
+
+    Router.go("lists");
+  } catch (error) {
+    console.error(error);
+    UI.setStatus("Could not complete login.", "error");
+    Router.go("home");
   }
 }
