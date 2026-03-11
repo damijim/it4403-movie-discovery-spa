@@ -41,6 +41,39 @@ function bindEvents() {
     await loadHome();
   });
 
+    // LOGIN BUTTON
+  $("#authBtn").on("click", async function () {
+
+    // If already logged in → log out
+    if (Store.state.sessionId) {
+      logout();
+      return;
+    }
+
+    try {
+      UI.setStatus("Starting TMDB login...");
+
+      const tokenResp = await TMDB.createRequestToken();
+      const requestToken = tokenResp.request_token;
+
+      sessionStorage.setItem("tmdb_request_token", requestToken);
+
+      const redirectTo =
+        window.location.origin + window.location.pathname + "#auth";
+
+      const approveUrl =
+        `https://www.themoviedb.org/authenticate/${requestToken}?redirect_to=${encodeURIComponent(redirectTo)}`;
+
+      window.location.href = approveUrl;
+
+    } catch (error) {
+      console.error(error);
+      UI.setStatus("Could not start login.", "error");
+    }
+
+  });
+  
+  // Discover Filters
   $("#sortSelect, #genreSelect").on("change", function () {
     Store.state.discoverGenre = $("#genreSelect").val();
     Store.state.discoverSort = $("#sortSelect").val();
