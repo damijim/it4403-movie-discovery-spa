@@ -135,6 +135,8 @@ window.UI = (function () {
       $("#viewDiscover").addClass("is-active");
     } else if (viewName === "lists") {
       $("#viewLists").addClass("is-active");
+    } else if (viewName === "details") {
+      $("#viewDetails").addClass("is-active");
     } else {
       $("#viewHome").addClass("is-active");
     }
@@ -143,12 +145,55 @@ window.UI = (function () {
     $(`.nav__link[href="#${viewName}"]`).addClass("is-active");
   }
 
-  return {
+  
+
+  function renderDetailsView(details, credits) {
+    const safeDetails = details || {};
+    const safeCredits = credits || {};
+
+    const title = safeDetails.title || "Untitled";
+    const year = safeDetails.release_date ? String(safeDetails.release_date).slice(0, 4) : "—";
+    const rating = (typeof safeDetails.vote_average === "number")
+      ? safeDetails.vote_average.toFixed(1)
+      : "—";
+    const runtime = safeDetails.runtime ? `${safeDetails.runtime} min` : "—";
+    const genres = (safeDetails.genres || []).map(function (g) { return g.name; }).join(", ") || "—";
+    const overview = safeDetails.overview || "No overview available.";
+
+    const poster = getPosterUrl(safeDetails.poster_path);
+
+    const cast = (safeCredits.cast || []).slice(0, 8);
+    const castText = cast.length
+      ? cast.map(function (p) { return escapeHtml(p.name); }).join(", ")
+      : "—";
+
+    $("#viewDetails .view__title").text(`${title} (${year})`);
+    $("#viewDetails .view__subtitle").text("Live data loaded from TMDB.");
+
+    $("#detailsBody").html(`
+      <div class="two-col">
+        <div>
+          <img class="poster" src="${poster}" alt="${escapeHtml(title)} poster" />
+        </div>
+        <div>
+          <p><strong>Rating:</strong> ⭐ ${escapeHtml(rating)}</p>
+          <p><strong>Runtime:</strong> ${escapeHtml(runtime)}</p>
+          <p><strong>Genres:</strong> ${escapeHtml(genres)}</p>
+          <p><strong>Overview:</strong><br>${escapeHtml(overview)}</p>
+          <p><strong>Top Cast:</strong> ${castText}</p>
+        </div>
+      </div>
+    `);
+  }
+
+
+return {
     setStatus,
     renderHomeGrid,
     renderDiscoverGrid,
     updateDiscoverControls,
     fillGenreOptions,
-    setActiveView
+    setActiveView,
+    renderDetailsView
   };
 })();

@@ -53,6 +53,14 @@ window.TMDB = (function () {
       });
     },
 
+    getMovieDetails(movieId) {
+      return get(`/movie/${movieId}`);
+    },
+
+    getMovieCredits(movieId) {
+      return get(`/movie/${movieId}/credits`);
+    },
+
     getGenres() {
       return get("/genre/movie/list");
     },

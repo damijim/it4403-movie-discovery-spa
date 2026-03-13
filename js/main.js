@@ -23,6 +23,9 @@ function bindEvents() {
       loadDiscover();
     } else if (viewName === "lists") {             //Added lists
       loadMyLists(); 
+    } else if (viewName === "details") {
+      const movieId = Router.getDetailsIdFromHash();
+      loadDetails(movieId);
     }
   });
 
@@ -110,9 +113,10 @@ function bindEvents() {
   // Placeholder Details button behavior for now
   $(document).on("click", ".js-details-btn", function () {
     const movieId = $(this).data("movie-id");
-    UI.setStatus(`Details clicked for movie ID ${movieId}. Details view can be added next.`, "ok");
+    Router.goDetails(movieId);
   });
-  //button handler, will come back for place holder button
+
+//button handler, will come back for place holder button
   $(document).on("click", ".js-favorite-btn", async function () {
     if (!Store.state.sessionId || !Store.state.accountId) {
       UI.setStatus("Please log in first to add favorites.", "error");
@@ -158,6 +162,11 @@ function bindEvents() {
       UI.setStatus("Could not add movie to Watchlist.", "error");
     }
   });
+
+  $("#detailsBackBtn").on("click", function () {
+    Router.go("home");
+  });
+
 }
 
 async function initApp() {
@@ -173,6 +182,9 @@ async function initApp() {
       await loadDiscover();
     } else if (currentView === "lists") {
       await loadMyLists();
+    } else if (currentView === "details") {
+      const movieId = Router.getDetailsIdFromHash();
+      await loadDetails(movieId);
     } else {
       await loadHome();
     }
@@ -333,6 +345,30 @@ function logout() {
   updateAuthButton();
   UI.setStatus("Logged out.", "ok");
   Router.go("home");
+}
+
+
+async function loadDetails(movieId) {
+  if (!movieId) {
+    UI.setStatus("No movie selected.", "error");
+    return;
+  }
+
+  try {
+    UI.setStatus("Loading movie details...");
+
+    const [details, credits] = await Promise.all([
+      TMDB.getMovieDetails(movieId),
+      TMDB.getMovieCredits(movieId)
+    ]);
+
+    UI.setActiveView("details");
+    UI.renderDetailsView(details, credits);
+    UI.setStatus("Loaded movie details.", "ok");
+  } catch (error) {
+    console.error(error);
+    UI.setStatus("Could not load movie details.", "error");
+  }
 }
 
 async function finishLoginIfReturningFromTMDB() {
