@@ -163,9 +163,12 @@ window.UI = (function () {
     const poster = getPosterUrl(safeDetails.poster_path);
 
     const cast = (safeCredits.cast || []).slice(0, 8);
-    const castText = cast.length
-      ? cast.map(function (p) { return escapeHtml(p.name); }).join(", ")
-      : "—";
+
+    const castHtml = cast.length
+      ? cast.map(function (p) {
+          return `<button class="btn btn--small js-actor-btn" type="button" data-person-id="${p.id}">${escapeHtml(p.name)}</button>`;
+        }).join(" ")
+      : `<span class="muted">—</span>`;
 
     $("#viewDetails .view__title").text(`${title} (${year})`);
     $("#viewDetails .view__subtitle").text("Live data loaded from TMDB.");
@@ -180,13 +183,55 @@ window.UI = (function () {
           <p><strong>Runtime:</strong> ${escapeHtml(runtime)}</p>
           <p><strong>Genres:</strong> ${escapeHtml(genres)}</p>
           <p><strong>Overview:</strong><br>${escapeHtml(overview)}</p>
-          <p><strong>Top Cast:</strong> ${castText}</p>
+          <p><strong>Top Cast:</strong></p>
+          <div class="card__actions">${castHtml}</div>
         </div>
       </div>
     `);
   }
 
+  function openActorModal(person, credits) {
+    const safePerson = person || {};
+    const safeCredits = credits || {};
 
+    const name = safePerson.name || "Actor";
+    //Fix for no actor image
+    const profileHtml = safePerson.profile_path
+      ? `<img class="poster" src="${getPosterUrl(safePerson.profile_path)}" alt="${escapeHtml(name)} profile" />`
+      : `<div class="poster poster--empty" aria-label="No actor image available">No Image</div>`;
+    const born = safePerson.birthday || "—";
+    const place = safePerson.place_of_birth || "—";
+    const bio = safePerson.biography || "No biography available.";
+
+    const knownFor = (safeCredits.cast || [])
+      .slice(0, 8)
+      .map(function (item) { return escapeHtml(item.title || item.name || ""); })
+      .filter(Boolean)
+      .join(", ") || "—";
+
+    $("#actorModal .modal__title").text(name);
+
+    $("#actorModal .modal__content").html(`
+      <div class="two-col">
+        <div>
+          ${profileHtml}
+        </div>
+        <div>
+          <p><strong>Born:</strong> ${escapeHtml(born)}</p>
+          <p><strong>From:</strong> ${escapeHtml(place)}</p>
+          <p><strong>Known For:</strong> ${knownFor}</p>
+          <p><strong>Bio:</strong></p>
+          <p>${escapeHtml(bio)}</p>
+        </div>
+      </div>
+    `);
+
+    $("#actorModal").addClass("is-open").attr("aria-hidden", "false");
+  }
+
+  function closeActorModal() {
+    $("#actorModal").removeClass("is-open").attr("aria-hidden", "true");
+  }
 return {
     setStatus,
     renderHomeGrid,
@@ -194,6 +239,8 @@ return {
     updateDiscoverControls,
     fillGenreOptions,
     setActiveView,
-    renderDetailsView
+    renderDetailsView,
+    openActorModal,
+    closeActorModal
   };
 })();

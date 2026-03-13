@@ -61,6 +61,15 @@ window.TMDB = (function () {
       return get(`/movie/${movieId}/credits`);
     },
 
+    
+    getPersonDetails(personId) {
+      return get(`/person/${personId}`);
+    },
+
+    getPersonCombinedCredits(personId) {
+      return get(`/person/${personId}/combined_credits`);
+    },
+
     getGenres() {
       return get("/genre/movie/list");
     },

@@ -110,12 +110,46 @@ function bindEvents() {
     await loadDiscover();
   });
 
-  // Placeholder Details button behavior for now
+  // Details button behavior
   $(document).on("click", ".js-details-btn", function () {
     const movieId = $(this).data("movie-id");
     Router.goDetails(movieId);
   });
 
+
+//Actor modal
+  $(document).on("click", ".js-actor-btn", async function () {
+    const personId = $(this).data("person-id");
+    if (!personId) return;
+
+    try {
+      UI.setStatus("Loading actor details...");
+
+      const person = await TMDB.getPersonDetails(personId);
+
+      //Credits are nice to have, but the modal should still work if this call fails
+      let credits = null;
+      try {
+        credits = await TMDB.getPersonCombinedCredits(personId);
+      } catch (error) {
+        console.warn("Actor credits failed:", error);
+      }
+
+      UI.openActorModal(person, credits);
+      UI.setStatus("Loaded actor details.", "ok");
+    } catch (error) {
+      console.error(error);
+      UI.setStatus("Could not load actor details.", "error");
+    }
+  });
+
+  $(document).on(
+    "click",
+    "#actorModal .modal__backdrop, #actorModal button[aria-label='Close actor modal']",
+    function () {
+      UI.closeActorModal();
+    }
+  );
 //button handler, will come back for place holder button
   $(document).on("click", ".js-favorite-btn", async function () {
     if (!Store.state.sessionId || !Store.state.accountId) {

@@ -236,6 +236,16 @@ main.container {
     object-fit: cover; /* Crops without stretching */
 }
 
+/* When an actor/movie image is missing, keep the layout clean (fix) */
+.poster--empty {
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    color: rgba(226, 232, 240, 0.70);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+
 .card__body {
     padding: 14px;
 }
@@ -458,6 +468,23 @@ a:hover {
 /* Small hover effect on movie tiles so they feel clickable */
 .card {
     transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+/* Modal fix: if content is taller than the screen, keep it usable */
+.modal.is-open {
+    place-items: start center; /* Don’t vertically center a huge modal */
+    padding: 18px 0; /* Gives breathing room top/bottom */
+}
+
+.modal__panel {
+    max-height: calc(100vh - 36px); /* Keeps the panel within the viewport */
+    overflow: hidden; /* Prevents the panel itself from spilling */
+}
+
+.modal__content {
+    max-height: calc(100vh - 120px); /* Header takes space; this makes content scroll */
+    overflow-y: auto; /* Long bios scroll inside the modal */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Only lift on hover for devices that actually have hover (avoids weirdness on mobile) */
